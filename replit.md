@@ -3,6 +3,7 @@
 ## Overview
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Also includes a Python Telegram AI Tutor Bot.
 
 ## Stack
 
@@ -15,6 +16,9 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
+- **Python version**: 3.11
+- **Telegram bot**: python-telegram-bot
+- **AI**: OpenAI via Replit AI Integrations proxy
 
 ## Key Commands
 
@@ -23,5 +27,19 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
+
+## Telegram Bot
+
+- **File**: `artifacts/telegram-bot/bot.py`
+- **Workflow**: `Telegram Tutor Bot` — runs `python artifacts/telegram-bot/bot.py`
+- **Secrets needed**: `TELEGRAM_BOT_TOKEN`, `AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`
+- **Subject**: Introduction to Computer Systems and Databases
+
+### Bot Commands
+- `/start` — Welcome message
+- `/help` — Command list
+- `/reset` — Clear conversation history
+- `/topics` — List all covered topics
+- `/quiz` — Generate a practice question
 
 See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
