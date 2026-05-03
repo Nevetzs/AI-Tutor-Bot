@@ -8,7 +8,6 @@ from telegram.ext import (
     MessageHandler,
     filters,
     ContextTypes,
-    ConversationHandler,
 )
 
 logging.basicConfig(
@@ -23,40 +22,43 @@ OPENAI_API_KEY = os.environ["AI_INTEGRATIONS_OPENAI_API_KEY"]
 
 client = OpenAI(base_url=OPENAI_BASE_URL, api_key=OPENAI_API_KEY)
 
-SYSTEM_PROMPT = """You are an expert tutor specializing in Introduction to Computer Systems and Databases. 
-Your role is to help students learn and understand the following topics:
+SYSTEM_PROMPT = """Eres un tutor experto en Introducción a los Sistemas Informáticos y Bases de Datos.
+DEBES responder SIEMPRE en español, sin excepción, sin importar el idioma en que te escriban.
 
-**Computer Systems:**
-- Hardware components (CPU, RAM, storage, input/output devices)
-- Software (system software, application software, operating systems)
-- Operating systems (processes, memory management, file systems, scheduling)
-- Binary numbers and data representation (bits, bytes, hex, ASCII, etc.)
-- Computer memory hierarchy (registers, cache, RAM, secondary storage)
-- Processors and how they work (fetch-decode-execute cycle, instruction sets)
-- Networking fundamentals (TCP/IP, DNS, HTTP, LAN/WAN, OSI model)
+Tu rol es ayudar a los estudiantes a comprender los siguientes temas:
 
-**Databases:**
-- Database concepts and purpose
-- Primary keys and foreign keys
+**Sistemas Informáticos:**
+- Componentes de hardware (CPU, RAM, almacenamiento, dispositivos de entrada/salida)
+- Software (software de sistema, software de aplicación, sistemas operativos)
+- Sistemas operativos (procesos, gestión de memoria, sistemas de archivos, planificación)
+- Números binarios y representación de datos (bits, bytes, hexadecimal, ASCII, etc.)
+- Jerarquía de memoria (registros, caché, RAM, almacenamiento secundario)
+- Procesadores y su funcionamiento (ciclo fetch-decode-execute, conjuntos de instrucciones)
+- Fundamentos de redes (TCP/IP, DNS, HTTP, LAN/WAN, modelo OSI)
+
+**Bases de Datos:**
+- Conceptos de bases de datos y su propósito
+- Claves primarias y claves foráneas
 - SQL (SELECT, INSERT, UPDATE, DELETE, JOINs, GROUP BY, WHERE, etc.)
-- Entity-Relationship (ER) diagrams and how to read/create them
-- Data normalization (1NF, 2NF, 3NF, BCNF)
-- Relational database design
+- Diagramas Entidad-Relación (ER) y cómo leerlos/crearlos
+- Normalización de datos (1FN, 2FN, 3FN, FNBC)
+- Diseño de bases de datos relacionales
 
-**Teaching style:**
-- Be clear, patient, and encouraging
-- Use simple analogies and real-world examples to explain complex concepts
-- Break down difficult topics into digestible steps
-- When asked about SQL, always show working examples
-- When explaining ER diagrams, describe them in text clearly
-- Provide practice questions when appropriate
-- If a student makes a mistake, correct them kindly and explain why
-- Celebrate correct answers and progress
-- Always ask if the explanation was clear or if they need more detail
-- Do NOT answer questions outside of Computer Systems and Databases topics
-- If asked about unrelated topics, politely redirect to the course material
+**Estilo de enseñanza:**
+- Sé claro, paciente y motivador
+- Usa analogías simples y ejemplos del mundo real para explicar conceptos complejos
+- Divide los temas difíciles en pasos comprensibles
+- Cuando te pregunten sobre SQL, muestra siempre ejemplos funcionales
+- Cuando expliques diagramas ER, descríbelos claramente en texto
+- Proporciona preguntas de práctica cuando sea apropiado
+- Si un estudiante comete un error, corrígelo amablemente y explica el porqué
+- Celebra las respuestas correctas y el progreso del estudiante
+- Siempre pregunta si la explicación fue clara o si necesita más detalles
+- NO respondas preguntas fuera de los temas de Sistemas Informáticos y Bases de Datos
+- Si te preguntan sobre temas no relacionados, redirige amablemente al material del curso
 
-Keep responses concise but thorough. Use markdown formatting (bold, bullet points, code blocks for SQL) to make answers easy to read."""
+Mantén las respuestas concisas pero completas. Usa formato markdown (negrita, listas, bloques de código para SQL) para facilitar la lectura.
+RECUERDA: Responde SIEMPRE en español."""
 
 user_conversations: dict[int, list[dict]] = {}
 
@@ -72,28 +74,28 @@ def get_conversation(user_id: int) -> list[dict]:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     welcome_message = (
-        f"👋 Hello {user.first_name}! I'm your AI tutor for **Introduction to Computer Systems and Databases**.\n\n"
-        "I can help you with:\n"
-        "• 💻 **Computer Hardware & Software** — CPUs, memory, operating systems\n"
-        "• 🔢 **Binary Numbers & Data Representation**\n"
-        "• 🌐 **Networking Fundamentals**\n"
-        "• 🗄️ **Database Concepts** — primary/foreign keys, SQL, ER diagrams\n"
-        "• 📐 **Data Normalization** — 1NF, 2NF, 3NF\n\n"
-        "Just ask me anything about these topics and I'll do my best to explain it clearly!\n\n"
-        "Type /help to see available commands."
+        f"👋 ¡Hola {user.first_name}! Soy tu tutor de IA para **Introducción a los Sistemas Informáticos y Bases de Datos**.\n\n"
+        "Puedo ayudarte con:\n"
+        "• 💻 **Hardware y Software** — CPUs, memoria, sistemas operativos\n"
+        "• 🔢 **Números Binarios y Representación de Datos**\n"
+        "• 🌐 **Fundamentos de Redes**\n"
+        "• 🗄️ **Bases de Datos** — claves primarias/foráneas, SQL, diagramas ER\n"
+        "• 📐 **Normalización de Datos** — 1FN, 2FN, 3FN\n\n"
+        "¡Solo pregúntame cualquier cosa sobre estos temas y te lo explicaré con claridad!\n\n"
+        "Escribe /ayuda para ver los comandos disponibles."
     )
     await update.message.reply_text(welcome_message, parse_mode="Markdown")
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_text = (
-        "🤖 **Tutor Bot Commands**\n\n"
-        "/start — Welcome message and topic overview\n"
-        "/help — Show this help message\n"
-        "/reset — Clear your conversation history and start fresh\n"
-        "/topics — See all topics I can help you with\n"
-        "/quiz — Get a practice question on a random topic\n\n"
-        "Or just **send me any question** about Computer Systems or Databases and I'll answer it!"
+        "🤖 **Comandos del Tutor Bot**\n\n"
+        "/inicio — Mensaje de bienvenida y resumen de temas\n"
+        "/ayuda — Mostrar este mensaje de ayuda\n"
+        "/reiniciar — Borrar tu historial de conversación y empezar de nuevo\n"
+        "/temas — Ver todos los temas con los que puedo ayudarte\n"
+        "/quiz — Recibir una pregunta de práctica sobre un tema aleatorio\n\n"
+        "O simplemente **envíame cualquier pregunta** sobre Sistemas Informáticos o Bases de Datos y te responderé."
     )
     await update.message.reply_text(help_text, parse_mode="Markdown")
 
@@ -103,28 +105,28 @@ async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     if user_id in user_conversations:
         del user_conversations[user_id]
     await update.message.reply_text(
-        "✅ Conversation reset! Your history has been cleared. Ask me anything to start fresh.",
+        "✅ ¡Conversación reiniciada! Tu historial ha sido borrado. Escríbeme algo para empezar de nuevo.",
         parse_mode="Markdown",
     )
 
 
 async def topics_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     topics_text = (
-        "📚 **Topics I Can Help You With**\n\n"
-        "**Computer Systems:**\n"
-        "• Hardware: CPU, RAM, storage, I/O devices\n"
-        "• Software & Operating Systems\n"
-        "• Binary numbers, hex, data representation\n"
-        "• Memory hierarchy (cache, RAM, etc.)\n"
-        "• Processors & fetch-decode-execute cycle\n"
-        "• Networking (TCP/IP, DNS, OSI model, HTTP)\n\n"
-        "**Databases:**\n"
-        "• Database concepts and DBMS\n"
-        "• Primary keys & foreign keys\n"
+        "📚 **Temas con los que puedo ayudarte**\n\n"
+        "**Sistemas Informáticos:**\n"
+        "• Hardware: CPU, RAM, almacenamiento, dispositivos E/S\n"
+        "• Software y Sistemas Operativos\n"
+        "• Números binarios, hexadecimal, representación de datos\n"
+        "• Jerarquía de memoria (caché, RAM, etc.)\n"
+        "• Procesadores y el ciclo fetch-decode-execute\n"
+        "• Redes (TCP/IP, DNS, modelo OSI, HTTP)\n\n"
+        "**Bases de Datos:**\n"
+        "• Conceptos de bases de datos y SGBD\n"
+        "• Claves primarias y claves foráneas\n"
         "• SQL (SELECT, INSERT, UPDATE, DELETE, JOINs)\n"
-        "• Entity-Relationship (ER) diagrams\n"
-        "• Data normalization (1NF, 2NF, 3NF, BCNF)\n\n"
-        "Just ask me about any of these and I'll explain it clearly! 🎓"
+        "• Diagramas Entidad-Relación (ER)\n"
+        "• Normalización de datos (1FN, 2FN, 3FN, FNBC)\n\n"
+        "¡Pregúntame sobre cualquiera de estos temas y te lo explicaré claramente! 🎓"
     )
     await update.message.reply_text(topics_text, parse_mode="Markdown")
 
@@ -134,15 +136,15 @@ async def quiz_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     conversation = get_conversation(user_id)
 
     quiz_prompt = (
-        "Generate a single multiple-choice practice question (with 4 options: A, B, C, D) "
-        "on a random topic from Computer Systems or Databases. "
-        "Format it clearly and tell the student to reply with their answer. "
-        "Do not give the answer yet."
+        "Genera una pregunta de opción múltiple (con 4 opciones: A, B, C, D) "
+        "sobre un tema aleatorio de Sistemas Informáticos o Bases de Datos. "
+        "Escríbela completamente en español, con formato claro, y dile al estudiante que responda con su elección. "
+        "No des la respuesta todavía."
     )
 
     conversation.append({"role": "user", "content": quiz_prompt})
 
-    await update.message.reply_text("⏳ Generating a quiz question...")
+    await update.message.reply_text("⏳ Generando una pregunta de práctica...")
 
     try:
         response = client.chat.completions.create(
@@ -156,7 +158,7 @@ async def quiz_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     except Exception as e:
         logger.error(f"Error generating quiz: {e}")
         await update.message.reply_text(
-            "❌ Sorry, I had trouble generating a question. Please try again."
+            "❌ Lo siento, tuve un problema al generar la pregunta. Por favor, inténtalo de nuevo."
         )
 
 
@@ -188,7 +190,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     except Exception as e:
         logger.error(f"Error from OpenAI: {e}")
         await update.message.reply_text(
-            "❌ Sorry, I encountered an error. Please try again in a moment."
+            "❌ Lo siento, ocurrió un error. Por favor, inténtalo de nuevo en un momento."
         )
 
 
@@ -196,15 +198,19 @@ def main() -> None:
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("inicio", start))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("ayuda", help_command))
     application.add_handler(CommandHandler("reset", reset_command))
+    application.add_handler(CommandHandler("reiniciar", reset_command))
     application.add_handler(CommandHandler("topics", topics_command))
+    application.add_handler(CommandHandler("temas", topics_command))
     application.add_handler(CommandHandler("quiz", quiz_command))
     application.add_handler(
         MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message)
     )
 
-    logger.info("Bot is starting...")
+    logger.info("Bot iniciado y funcionando...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
