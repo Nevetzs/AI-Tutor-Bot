@@ -227,7 +227,11 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         texto = respuesta.choices[0].message.content
         conversaciones[user_id].append({"role": "assistant", "content": texto})
-        await update.message.reply_text(texto)
+
+        # Dividir mensajes largos
+        limite = 4000
+        for i in range(0, len(texto), limite):
+            await update.message.reply_text(texto[i:i+limite])
     except Exception as e:
         await update.message.reply_text("Error: " + str(e))
 
