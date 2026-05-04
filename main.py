@@ -152,7 +152,7 @@ SISTEMA = (
     "Usa el siguiente material para responder:\n\n"
     "Eres un asistente virtual inteligente. Puedes responder sobre cualquier tema. "
     "Además tienes conocimiento especial sobre Metodología de la Investigación: "
-    + CONOCIMIENTO
+    + CONOCIMIENTO +
     "\n\nReglas:\n"
     "- Para temas del curso, usa el material proporcionado\n"
     "- Responde SIEMPRE en espanol\n"
