@@ -163,6 +163,12 @@ SISTEMA = (
     "- Puedes ayudar con tareas siempre que el contenido este en el material del curso\n"
 )
 
+MENSAJE_RATE_LIMIT = (
+    "Ponte a trabajar e we\n\n"
+    "Contesté tantas preguntas estoy en flop"
+     "Y si no descansas tú también... te va a agarrar Sonic.exe te lo juro weyyyyyy\n\n"
+)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Hola! Soy tu tutor virtual de Metodologia de la Investigacion.\n\n"
@@ -193,15 +199,22 @@ async def temas(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- Tecnicas e instrumentos de recoleccion\n"
         "- Analisis de datos"
     )
+
 async def quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    respuesta = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": SISTEMA},
-            {"role": "user", "content": "Genera una pregunta de opcion multiple (A, B, C, D) sobre el material del curso. Al final indica la respuesta correcta y explica por que."}
-        ]
-    )
-    await update.message.reply_text(respuesta.choices[0].message.content)
+    try:
+        respuesta = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": SISTEMA},
+                {"role": "user", "content": "Genera una pregunta de opcion multiple (A, B, C, D) sobre el material del curso. Al final indica la respuesta correcta y explica por que."}
+            ]
+        )
+        await update.message.reply_text(respuesta.choices[0].message.content)
+    except Exception as e:
+        if "429" in str(e) or "rate_limit" in str(e):
+            await update.message.reply_text(MENSAJE_RATE_LIMIT)
+        else:
+            await update.message.reply_text("❌ Algo salio mal, intenta de nuevo.")
 
 async def reiniciar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -233,8 +246,12 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
         limite = 4000
         for i in range(0, len(texto), limite):
             await update.message.reply_text(texto[i:i+limite])
+
     except Exception as e:
-        await update.message.reply_text("Error: " + str(e))
+        if "429" in str(e) or "rate_limit" in str(e):
+            await update.message.reply_text(MENSAJE_RATE_LIMIT)
+        else:
+            await update.message.reply_text("❌ Algo salio mal, intenta de nuevo.")
 
 def main():
     keep_alive()
